@@ -11,7 +11,7 @@ import {
 import { Input } from './ui/input.jsx'
 import { Label } from './ui/label.jsx'
 
-const emptyForm = { description: '', price: '', category: '' }
+const emptyForm = { description: '', price: '', category: '', stock: '' }
 
 function ProductForm({
   onAddProduct,
@@ -25,6 +25,7 @@ function ProductForm({
           description: editingProduct.description,
           price: String(editingProduct.price),
           category: editingProduct.category,
+          stock: String(editingProduct.stock ?? 0),
         }
       : emptyForm,
   )
@@ -53,6 +54,7 @@ function ProductForm({
     const description = form.description.trim()
     const category = form.category.trim()
     const price = Number(form.price)
+    const stock = Number(form.stock)
     const nextErrors = {}
 
     if (!description) {
@@ -69,15 +71,19 @@ function ProductForm({
       nextErrors.category = 'La categoría es obligatoria.'
     }
 
+    if (form.stock.trim() === '' || !Number.isInteger(stock) || stock < 0) {
+      nextErrors.stock = 'Ingresa una cantidad entera igual o mayor que cero.'
+    }
+
     setErrors(nextErrors)
     setConfirmation('')
 
     if (Object.keys(nextErrors).length > 0) return
 
     if (editingProduct) {
-      onUpdateProduct({ description, price, category }, editingProduct.code)
+      onUpdateProduct({ description, price, category, stock }, editingProduct.code)
     } else {
-      const code = onAddProduct({ description, price, category })
+      const code = onAddProduct({ description, price, category, stock })
       setConfirmation(`Producto ${code} registrado correctamente.`)
       setForm(emptyForm)
     }
@@ -85,27 +91,22 @@ function ProductForm({
   }
 
   return (
-    <Card className="rounded-2xl border border-slate-200 bg-white shadow-sm">
-      <CardHeader className="gap-1 border-b border-slate-100 px-5 py-5 sm:px-6">
-        <div className="mb-2 flex size-10 items-center justify-center rounded-xl bg-indigo-50 text-indigo-700">
-          <svg viewBox="0 0 24 24" fill="none" className="size-5" aria-hidden="true">
-            <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-          </svg>
-        </div>
-        <CardTitle className="text-base font-semibold text-slate-900">
+    <Card className="product-form-card">
+      <CardHeader className="form-card-heading">
+        <CardTitle className="form-card-title">
           {editingProduct ? 'Editar producto' : 'Registrar producto'}
         </CardTitle>
-        <CardDescription className="text-sm text-slate-500">
+        <CardDescription className="form-card-description">
           {editingProduct
             ? `Actualiza los datos de ${editingProduct.code}.`
             : 'Completa los datos para agregarlo al catálogo.'}
         </CardDescription>
       </CardHeader>
 
-      <CardContent className="px-5 py-5 sm:px-6">
-        <form className="space-y-5" onSubmit={handleSubmit} noValidate>
-          <div className="space-y-2">
-            <Label htmlFor="description" className="text-sm text-slate-700">
+      <CardContent className="form-card-content">
+        <form className="product-form" onSubmit={handleSubmit} noValidate>
+          <div className="form-field">
+            <Label htmlFor="description" className="form-label">
               Descripción <span className="text-rose-600">*</span>
             </Label>
             <Input
@@ -116,19 +117,19 @@ function ProductForm({
               placeholder="Ej. Teclado inalámbrico"
               aria-invalid={Boolean(errors.description)}
               aria-describedby={errors.description ? 'description-error' : undefined}
-              className="h-10 rounded-lg border-slate-200 bg-white px-3 text-sm"
+              className="form-input"
             />
             {errors.description && (
               <p id="description-error" className="text-xs text-rose-600">{errors.description}</p>
             )}
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="price" className="text-sm text-slate-700">
+          <div className="form-field">
+            <Label htmlFor="price" className="form-label">
               Precio de venta <span className="text-rose-600">*</span>
             </Label>
             <div className="relative">
-              <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-sm text-slate-500">
+              <span className="currency-prefix">
                 S/
               </span>
               <Input
@@ -143,7 +144,7 @@ function ProductForm({
                 placeholder="0.00"
                 aria-invalid={Boolean(errors.price)}
                 aria-describedby={errors.price ? 'price-error' : undefined}
-                className="h-10 rounded-lg border-slate-200 bg-white pl-7 text-sm"
+                className="form-input currency-input"
               />
             </div>
             {errors.price && (
@@ -151,8 +152,8 @@ function ProductForm({
             )}
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="category" className="text-sm text-slate-700">
+          <div className="form-field">
+            <Label htmlFor="category" className="form-label">
               Categoría <span className="text-rose-600">*</span>
             </Label>
             <Input
@@ -163,17 +164,40 @@ function ProductForm({
               placeholder="Ej. Tecnología"
               aria-invalid={Boolean(errors.category)}
               aria-describedby={errors.category ? 'category-error' : undefined}
-              className="h-10 rounded-lg border-slate-200 bg-white px-3 text-sm"
+              className="form-input"
             />
             {errors.category && (
               <p id="category-error" className="text-xs text-rose-600">{errors.category}</p>
             )}
           </div>
 
-          <div className="space-y-3 pt-1">
+          <div className="form-field">
+            <Label htmlFor="stock" className="form-label">
+              Unidades disponibles <span className="text-rose-600">*</span>
+            </Label>
+            <Input
+              id="stock"
+              name="stock"
+              type="number"
+              min="0"
+              step="1"
+              inputMode="numeric"
+              value={form.stock}
+              onChange={updateField}
+              placeholder="Ej. 24"
+              aria-invalid={Boolean(errors.stock)}
+              aria-describedby={errors.stock ? 'stock-error' : undefined}
+              className="form-input"
+            />
+            {errors.stock && (
+              <p id="stock-error" className="field-error">{errors.stock}</p>
+            )}
+          </div>
+
+          <div className="form-actions">
             <Button
               type="submit"
-              className="h-10 w-full rounded-lg bg-indigo-700 px-4 text-sm text-white hover:bg-indigo-800"
+              className="form-submit"
             >
               <svg viewBox="0 0 24 24" fill="none" className="size-4" aria-hidden="true">
                 {editingProduct
@@ -186,7 +210,7 @@ function ProductForm({
               type="button"
               variant="outline"
               onClick={clearForm}
-              className="h-10 w-full rounded-lg border-slate-200 bg-white px-4 text-sm text-slate-700 hover:bg-slate-50"
+              className="form-clear"
             >
               Limpiar
             </Button>
@@ -195,7 +219,7 @@ function ProductForm({
                 type="button"
                 variant="ghost"
                 onClick={onCancelEdit}
-                className="h-9 w-full rounded-lg text-sm text-slate-600"
+                className="form-cancel"
               >
                 Cancelar edición
               </Button>
@@ -203,18 +227,18 @@ function ProductForm({
           </div>
 
           {Object.keys(errors).length > 0 && (
-            <Alert variant="destructive" className="border-rose-200 bg-rose-50 text-rose-800">
-              <AlertTitle className="text-sm">Revisa los datos</AlertTitle>
-              <AlertDescription className="text-xs text-rose-700">
+            <Alert variant="destructive" className="form-alert form-alert-error">
+              <AlertTitle>Revisa los datos</AlertTitle>
+              <AlertDescription>
                 Corrige los campos indicados antes de guardar.
               </AlertDescription>
             </Alert>
           )}
 
           {confirmation && (
-            <Alert className="border-indigo-200 bg-indigo-50 text-indigo-800">
-              <AlertTitle className="text-sm">Registro exitoso</AlertTitle>
-              <AlertDescription className="text-xs text-indigo-700" aria-live="polite">
+            <Alert className="form-alert form-alert-success">
+              <AlertTitle>Registro exitoso</AlertTitle>
+              <AlertDescription aria-live="polite">
                 {confirmation}
               </AlertDescription>
             </Alert>

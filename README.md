@@ -1,8 +1,9 @@
-# Gestión de productos
+# Nexo Comercial
 
-Prototipo de catálogo comercial desarrollado con React, Vite, Tailwind CSS y
-componentes reutilizables de shadcn/ui. Permite consultar cinco productos de
-ejemplo y registrar nuevos productos con código automático y validación.
+Panel de demostración para gestionar un catálogo e inventario comercial,
+desarrollado con React y Vite. Incluye indicadores de existencias y valor,
+clasificación por categorías, alta y edición de productos, búsqueda, filtros,
+ordenamiento y exportación del catálogo a CSV.
 
 ## Requisitos
 
@@ -23,6 +24,7 @@ npm run dev
 - `npm run preview`: previsualiza la compilación.
 - `npm run lint`: ejecuta ESLint.
 
-Los productos se mantienen únicamente en el estado de React durante la sesión.
-No se conectan a un servidor ni se guardan de forma permanente; al recargar la
-página se vuelven a mostrar los datos de ejemplo.
+Los productos se guardan en el almacenamiento local del navegador y se
+mantienen al recargar la página en ese mismo navegador. Esta demostración no
+cuenta con servidor, sincronización entre usuarios, autenticación ni una base de
+datos compartida; no debe usarse como sistema de inventario de producción.
